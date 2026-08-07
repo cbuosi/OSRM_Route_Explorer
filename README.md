@@ -12,6 +12,7 @@
 ## ✨ Funcionalidades
 
 ### Endpoints OSRM
+
 - **Route** – rota entre múltiplos waypoints, com alternativas e instruções.
 - **Trip** – rota de todos os pontos (travelling salesman).
 - **Table** – matriz de tempos/distâncias.
@@ -19,16 +20,19 @@
 - **Nearest** – ponto de rua mais próximo.
 
 ### Mapa
+
 - Alternância entre **Padrão (OSM)** e **Satélite (Esri)**.
 - Waypoints **numerados**, arrastáveis e editáveis.
 - Grade de coordenadas (graticule), escala e modo tela cheia.
 - Clique no mapa para adicionar pontos; coordenadas do mouse ao vivo.
 
 ### Geocodificação
+
 - Endereços com **Nominatim** (fallback **Photon**) e autocomplete.
 - CEP por **ViaCEP**; geolocalização por **Nominatim estruturado**.
 
 ### Mais recursos
+
 - **Exportação**: GeoJSON, JSON e GPX.
 - **Histórico** de buscas e **configurações** persistentes (LocalStorage).
 - Abas de resultado: Info, Rotas, Instruções, Matriz, JSON e URL da requisição.
@@ -38,9 +42,9 @@
 
 ## 🖥️ Capturas de tela
 
-| Mapa e rota | Resposta JSON |
-| --- | --- |
-| *(adicione sua imagem aqui)* | *(adicione sua imagem aqui)* |
+| Mapa e rota                  | Resposta JSON                |
+| ---------------------------- | ---------------------------- |
+| _(adicione sua imagem aqui)_ | _(adicione sua imagem aqui)_ |
 
 ---
 
@@ -88,6 +92,7 @@ OSRM_Route_Explorer/
 ```
 
 ### Tecnologias
+
 - **HTML5 / CSS3 / JavaScript ES6** (sem frameworks de aplicação)
 - **Bootstrap 5** + **Bootstrap Icons**
 - **Leaflet 1.9.4** (com fallback de CDN)
@@ -106,12 +111,14 @@ OSRM_Route_Explorer/
 ---
 
 ## 🔒 Notas
+
 - Tudo roda no navegador; os únicos acessos externos são as APIs públicas (OSM, Esri, Nominatim, ViaCEP, Photon).
 - Respeite a política de uso dos serviços gratuitos (caching e identificação própria).
 
 ---
 
 ## 📄 Licença
+
 Distribuído sob licença **MIT**.
 
 ---

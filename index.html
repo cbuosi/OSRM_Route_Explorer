@@ -1,423 +1,759 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OSRM Route Explorer</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
-</head>
-<body>
-
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
+      rel="stylesheet"
+    />
+    <link href="css/style.css" rel="stylesheet" />
+  </head>
+  <body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-        <div class="container-fluid px-3">
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <i class="bi bi-signpost-split-fill me-2"></i>
-                <span>OSRM <span class="text-info">Route Explorer</span></span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-                <span class="navbar-toggler-icon"></span>
+      <div class="container-fluid px-3">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+          <i class="bi bi-signpost-split-fill me-2"></i>
+          <span>OSRM <span class="text-info">Route Explorer</span></span>
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navMenu"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+          <div class="navbar-nav ms-auto align-items-lg-center">
+            <button class="nav-link btn-nav" data-action="nova-rota">
+              <i class="bi bi-plus-circle me-1"></i>Nova rota
             </button>
-            <div class="collapse navbar-collapse" id="navMenu">
-                <div class="navbar-nav ms-auto align-items-lg-center">
-                    <button class="nav-link btn-nav" data-action="nova-rota"><i class="bi bi-plus-circle me-1"></i>Nova rota</button>
-                    <button class="nav-link btn-nav" data-bs-toggle="modal" data-bs-target="#settingsModal"><i class="bi bi-gear me-1"></i>Configurações</button>
-                    <button class="nav-link btn-nav" data-bs-toggle="modal" data-bs-target="#historyModal"><i class="bi bi-clock-history me-1"></i>Histórico</button>
-                    <button class="nav-link btn-nav" data-bs-toggle="modal" data-bs-target="#aboutModal"><i class="bi bi-info-circle me-1"></i>Sobre</button>
-                </div>
-            </div>
+            <button
+              class="nav-link btn-nav"
+              data-bs-toggle="modal"
+              data-bs-target="#settingsModal"
+            >
+              <i class="bi bi-gear me-1"></i>Configurações
+            </button>
+            <button
+              class="nav-link btn-nav"
+              data-bs-toggle="modal"
+              data-bs-target="#historyModal"
+            >
+              <i class="bi bi-clock-history me-1"></i>Histórico
+            </button>
+            <button
+              class="nav-link btn-nav"
+              data-bs-toggle="modal"
+              data-bs-target="#aboutModal"
+            >
+              <i class="bi bi-info-circle me-1"></i>Sobre
+            </button>
+          </div>
         </div>
+      </div>
     </nav>
 
     <!-- Main -->
     <div class="container-fluid p-3">
-        <div class="row g-3">
+      <div class="row g-3">
+        <!-- LEFT: Controls -->
+        <div class="col-lg-4 col-xl-3">
+          <div class="controls-panel">
+            <!-- Async alert -->
+            <div id="alertArea" class="mb-3"></div>
 
-            <!-- LEFT: Controls -->
-            <div class="col-lg-4 col-xl-3">
-                <div class="controls-panel">
-
-                    <!-- Async alert -->
-                    <div id="alertArea" class="mb-3"></div>
-
-                    <!-- Endpoint selector -->
-                    <div class="card shadow-sm mb-3">
-                        <div class="card-header d-flex align-items-center">
-                            <i class="bi bi-cpu me-2"></i><strong>Endpoint OSRM</strong>
-                        </div>
-                        <div class="card-body">
-                            <div class="btn-group w-100" role="group" id="endpointGroup">
-                                <input type="radio" class="btn-check" name="endpoint" id="endRoute" value="route" checked>
-                                <label class="btn btn-outline-primary btn-sm" for="endRoute">Route</label>
-                                <input type="radio" class="btn-check" name="endpoint" id="endTrip" value="trip">
-                                <label class="btn btn-outline-primary btn-sm" for="endTrip">Trip</label>
-                                <input type="radio" class="btn-check" name="endpoint" id="endTable" value="table">
-                                <label class="btn btn-outline-primary btn-sm" for="endTable">Table</label>
-                                <input type="radio" class="btn-check" name="endpoint" id="endMatch" value="match">
-                                <label class="btn btn-outline-primary btn-sm" for="endMatch">Match</label>
-                                <input type="radio" class="btn-check" name="endpoint" id="endNearest" value="nearest">
-                                <label class="btn btn-outline-primary btn-sm" for="endNearest">Nearest</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Add points -->
-                    <div class="card shadow-sm mb-3">
-                        <div class="card-header d-flex align-items-center">
-                            <i class="bi bi-geo-alt me-2"></i><span>Adicionar pontos</span>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-check form-switch mb-2">
-                                <input class="form-check-input" type="checkbox" id="clickMode">
-                                <label class="form-check-label small" for="clickMode">
-                                    <i class="bi bi-hand-index-thumb me-1"></i>Modo clique no mapa
-                                </label>
-                            </div>
-
-                            <div class="d-flex gap-2 mb-3">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">Lat</span>
-                                    <input type="text" class="form-control" id="latInput" placeholder="-23.5505">
-                                </div>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">Lng</span>
-                                    <input type="text" class="form-control" id="lngInput" placeholder="-46.6333">
-                                </div>
-                                <button class="btn btn-sm btn-outline-primary" id="btnAddLatLng" title="Adicionar ponto">
-                                    <i class="bi bi-plus-lg"></i>
-                                </button>
-                            </div>
-
-                            <div class="input-group input-group-sm mb-1">
-                                <span class="input-group-text">CEP</span>
-                                <input type="text" class="form-control" id="cepInput" placeholder="01310-100">
-                                <button class="btn btn-outline-secondary" id="btnCep" title="Buscar CEP">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                            </div>
-
-                            <div class="input-group input-group-sm mb-1">
-                                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                <input type="text" class="form-control" id="addrInput" placeholder="Pesquisar endereço...">
-                            </div>
-                            <ul class="list-group suggestion-list mt-1" id="addrSuggest"></ul>
-                        </div>
-                    </div>
-
-                    <!-- Points table -->
-                    <div class="card shadow-sm mb-3">
-                        <div class="card-header d-flex align-items-center justify-content-between">
-                            <span><i class="bi bi-list-ol me-2"></i>Pontos</span>
-                            <span class="badge text-bg-secondary" id="pointsCount">0</span>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover table-sm mb-0 align-middle" id="pointsTable">
-                                    <thead>
-                                        <tr>
-                                            <th style="width:38px">#</th>
-                                            <th>Lat / Lng</th>
-                                            <th style="width:70px">Origem</th>
-                                            <th style="width:110px"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="pointsTbody"></tbody>
-                                </table>
-                            </div>
-                            <div class="p-2 border-top d-flex justify-content-between">
-                                <button class="btn btn-sm btn-outline-danger" id="btnClearPoints"><i class="bi bi-eraser me-1"></i>Limpar</button>
-                                <button class="btn btn-sm btn-primary" id="btnInsertBefore"><i class="bi bi-vector-pen me-1"></i>Inserir</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="card shadow-sm mb-3">
-                        <div class="card-body">
-                            <button class="btn btn-primary w-100 mb-2" id="btnExecute">
-                                <i class="bi bi-calculator me-1"></i>Calcular
-                            </button>
-                            <div class="btn-group w-100 mb-2">
-                                <button class="btn btn-outline-primary" id="btnGeoJson" title="Exportar GeoJSON"><i class="bi bi-diagram-3"></i> GeoJSON</button>
-                                <button class="btn btn-outline-primary" id="btnExportJson" title="Exportar JSON"><i class="bi bi-filetype-json"></i> JSON</button>
-                                <button class="btn btn-outline-primary" id="btnGpx" title="Exportar GPX"><i class="bi bi-file-earmark"></i> GPX</button>
-                            </div>
-                            <div class="btn-group w-100 mb-2">
-                                <button class="btn btn-outline-success" id="btnSaveRoute"><i class="bi bi-bookmark me-1"></i>Salvar rota</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tools -->
-                    <div class="card shadow-sm mb-3">
-                        <div class="card-header"><i class="bi bi-tools me-2"></i>Ferramentas</div>
-                        <div class="card-body">
-                            <div class="btn-group w-100 mb-2 flex-wrap">
-                                <button class="btn btn-sm btn-outline-secondary" id="btnCenter"><i class="bi bi-crosshair"></i> Centralizar</button>
-                                <button class="btn btn-sm btn-outline-secondary" id="btnCoord" title="Ativar coordenadas do mouse"><i class="bi bi-cursor"></i> Coord.</button>
-                                <button class="btn btn-sm btn-outline-secondary" id="btnFullscreen"><i class="bi bi-arrows-fullscreen"></i> Tela</button>
-                                <button class="btn btn-sm btn-outline-secondary" id="btnClearMap"><i class="bi bi-trash"></i> Limpar</button>
-                            </div>
-                            <div class="form-check form-switch mb-1">
-                                <input class="form-check-input" type="checkbox" id="chkScale" checked>
-                                <label class="form-check-label small" for="chkScale">Mostrar escala</label>
-                            </div>
-                            <div class="form-check form-switch mb-1">
-                                <input class="form-check-input" type="checkbox" id="chkGrid">
-                                <label class="form-check-label small" for="chkGrid">Grade de coordenadas</label>
-                            </div>
-                            <div class="form-check form-switch mb-1">
-                                <input class="form-check-input" type="checkbox" id="chkWpt" checked>
-                                <label class="form-check-label small" for="chkWpt">Mostrar waypoints</label>
-                            </div>
-                            <div class="d-flex align-items-center gap-2 mt-2">
-                                <label class="small">Cor:</label>
-                                <input type="color" class="form-control form-control-color" id="routeColor" value="#0d6efd" style="width:42px">
-                                <label class="small">Espessura:</label>
-                                <input type="range" class="form-range w-50" id="routeWidth" min="2" max="12" value="5">
-                                <span class="small text-muted" id="widthVal">5</span>
-                            </div>
-                        </div>
-                    </div>
-
+            <!-- Endpoint selector -->
+            <div class="card shadow-sm mb-3">
+              <div class="card-header d-flex align-items-center">
+                <i class="bi bi-cpu me-2"></i><strong>Endpoint OSRM</strong>
+              </div>
+              <div class="card-body">
+                <div class="btn-group w-100" role="group" id="endpointGroup">
+                  <input
+                    type="radio"
+                    class="btn-check"
+                    name="endpoint"
+                    id="endRoute"
+                    value="route"
+                    checked
+                  />
+                  <label class="btn btn-outline-primary btn-sm" for="endRoute"
+                    >Route</label
+                  >
+                  <input
+                    type="radio"
+                    class="btn-check"
+                    name="endpoint"
+                    id="endTrip"
+                    value="trip"
+                  />
+                  <label class="btn btn-outline-primary btn-sm" for="endTrip"
+                    >Trip</label
+                  >
+                  <input
+                    type="radio"
+                    class="btn-check"
+                    name="endpoint"
+                    id="endTable"
+                    value="table"
+                  />
+                  <label class="btn btn-outline-primary btn-sm" for="endTable"
+                    >Table</label
+                  >
+                  <input
+                    type="radio"
+                    class="btn-check"
+                    name="endpoint"
+                    id="endMatch"
+                    value="match"
+                  />
+                  <label class="btn btn-outline-primary btn-sm" for="endMatch"
+                    >Match</label
+                  >
+                  <input
+                    type="radio"
+                    class="btn-check"
+                    name="endpoint"
+                    id="endNearest"
+                    value="nearest"
+                  />
+                  <label class="btn btn-outline-primary btn-sm" for="endNearest"
+                    >Nearest</label
+                  >
                 </div>
+              </div>
             </div>
 
-            <!-- RIGHT: Map + results -->
-            <div class="col-lg-8 col-xl-9">
-                <div class="row g-3 h-100">
-
-                    <div class="col-12 map-wrap">
-                        <div id="map"></div>
-                        <div class="coords-tag" id="mouseCoords"></div>
-                        <div class="map-loading d-none" id="mapLoading">
-                            <div class="spinner-border text-light" role="status"></div>
-                            <span>Consultando OSRM...</span>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <ul class="nav nav-pills nav-fill mb-2" id="resultTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tabInfo">Info</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabRoutes">Rotas</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabSteps">Instruções</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabTable">Matriz</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabJson">JSON</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabUrl">Requisição</button>
-                            </li>
-                        </ul>
-
-                        <div class="tab-content">
-
-                            <!-- INFO -->
-                            <div class="tab-pane fade show active card shadow-sm" id="tabInfo">
-                                <div class="card-body">
-                                    <div id="infoCards" class="row g-2"></div>
-                                    <div class="alert alert-light border text-center text-muted py-4" id="tripEmpty">
-                                        <i class="bi bi-arrow-left-circle me-1"></i>Adicione pontos e clique em <strong>Calcular</strong>.
-                                    </div>
-                                    <div id="bboxCard" class="d-none mb-2">
-                                        <div class="d-flex align-items-center gap-2 pt-2 border-top">
-                                            <i class="bi bi-bounding-box"></i>
-                                            <span class="small"><strong>Bounding Box:</strong> <span id="bboxText"></span></span>
-                                        </div>
-                                    </div>
-                                    <div id="endpointResult"></div>
-                                </div>
-                            </div>
-
-                            <!-- ROUTES / ALTERNATIVES -->
-                            <div class="tab-pane fade" id="tabRoutes">
-                                <div class="card-body">
-                                    <div id="alternativesEmpty" class="alert alert-secondary mb-0">
-                                        <i class="bi bi-shuffle me-1"></i> Nenhuma rota alternativa encontrada.
-                                    </div>
-                                    <div id="routesList"></div>
-                                </div>
-                            </div>
-
-                            <!-- STEPS -->
-                            <div class="tab-pane fade" id="tabSteps">
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover table-sm mb-0" id="stepsTable">
-                                            <thead>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>Instrução</th>
-                                                    <th>Way</th>
-                                                    <th>Distância</th>
-                                                    <th>Duração</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="stepsTbody"></tbody>
-                                        </table>
-                                    </div>
-                                    <div class="alert alert-light border text-muted mt-2 mb-0" id="stepsEmpty">
-                                        <i class="bi bi-sign-turn-left me-1"></i>Sem instruções ainda.
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- JSON -->
-                            <div class="tab-pane fade" id="tabJson">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="small text-muted" id="jsonMeta"></span>
-                                        <div class="d-flex gap-2">
-                                            <button class="btn btn-sm btn-outline-primary" id="btnCopyJson"><i class="bi bi-copy"></i> Copiar</button>
-                                            <button class="btn btn-sm btn-outline-success" id="btnDlJson"><i class="bi bi-download"></i> Baixar</button>
-                                        </div>
-                                    </div>
-                                    <pre id="jsonView" class="json-view"><code>Sem resposta ainda.</code></pre>
-                                </div>
-                            </div>
-
-                            <!-- URL -->
-                            <div class="tab-pane fade" id="tabUrl">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span class="small text-muted" id="urlMeta"></span>
-                                        <button class="btn btn-sm btn-outline-primary" id="btnCopyUrl"><i class="bi bi-copy"></i> Copiar URL</button>
-                                    </div>
-                                    <div class="url-box" id="urlView">Nenhuma requisição ainda.</div>
-                                </div>
-                            </div>
-
-                            <!-- MATRIX -->
-                            <div class="tab-pane fade" id="tabTable">
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered table-sm mb-0" id="matrixTable"></table>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
+            <!-- Add points -->
+            <div class="card shadow-sm mb-3">
+              <div class="card-header d-flex align-items-center">
+                <i class="bi bi-geo-alt me-2"></i><span>Adicionar pontos</span>
+              </div>
+              <div class="card-body">
+                <div class="form-check form-switch mb-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="clickMode"
+                  />
+                  <label class="form-check-label small" for="clickMode">
+                    <i class="bi bi-hand-index-thumb me-1"></i>Modo clique no
+                    mapa
+                  </label>
                 </div>
+
+                <div class="d-flex gap-2 mb-3">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">Lat</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="latInput"
+                      placeholder="-23.5505"
+                    />
+                  </div>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">Lng</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="lngInput"
+                      placeholder="-46.6333"
+                    />
+                  </div>
+                  <button
+                    class="btn btn-sm btn-outline-primary"
+                    id="btnAddLatLng"
+                    title="Adicionar ponto"
+                  >
+                    <i class="bi bi-plus-lg"></i>
+                  </button>
+                </div>
+
+                <div class="input-group input-group-sm mb-1">
+                  <span class="input-group-text">CEP</span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="cepInput"
+                    placeholder="01310-100"
+                  />
+                  <button
+                    class="btn btn-outline-secondary"
+                    id="btnCep"
+                    title="Buscar CEP"
+                  >
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+
+                <div class="input-group input-group-sm mb-1">
+                  <span class="input-group-text"
+                    ><i class="bi bi-search"></i
+                  ></span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="addrInput"
+                    placeholder="Pesquisar endereço..."
+                  />
+                </div>
+                <ul
+                  class="list-group suggestion-list mt-1"
+                  id="addrSuggest"
+                ></ul>
+              </div>
             </div>
 
+            <!-- Points table -->
+            <div class="card shadow-sm mb-3">
+              <div
+                class="card-header d-flex align-items-center justify-content-between"
+              >
+                <span><i class="bi bi-list-ol me-2"></i>Pontos</span>
+                <span class="badge text-bg-secondary" id="pointsCount">0</span>
+              </div>
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table
+                    class="table table-hover table-sm mb-0 align-middle"
+                    id="pointsTable"
+                  >
+                    <thead>
+                      <tr>
+                        <th style="width: 38px">#</th>
+                        <th>Lat / Lng</th>
+                        <th style="width: 70px">Origem</th>
+                        <th style="width: 110px"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="pointsTbody"></tbody>
+                  </table>
+                </div>
+                <div class="p-2 border-top d-flex justify-content-between">
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    id="btnClearPoints"
+                  >
+                    <i class="bi bi-eraser me-1"></i>Limpar
+                  </button>
+                  <button class="btn btn-sm btn-primary" id="btnInsertBefore">
+                    <i class="bi bi-vector-pen me-1"></i>Inserir
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card shadow-sm mb-3">
+              <div class="card-body">
+                <button class="btn btn-primary w-100 mb-2" id="btnExecute">
+                  <i class="bi bi-calculator me-1"></i>Calcular
+                </button>
+                <div class="btn-group w-100 mb-2">
+                  <button
+                    class="btn btn-outline-primary"
+                    id="btnGeoJson"
+                    title="Exportar GeoJSON"
+                  >
+                    <i class="bi bi-diagram-3"></i> GeoJSON
+                  </button>
+                  <button
+                    class="btn btn-outline-primary"
+                    id="btnExportJson"
+                    title="Exportar JSON"
+                  >
+                    <i class="bi bi-filetype-json"></i> JSON
+                  </button>
+                  <button
+                    class="btn btn-outline-primary"
+                    id="btnGpx"
+                    title="Exportar GPX"
+                  >
+                    <i class="bi bi-file-earmark"></i> GPX
+                  </button>
+                </div>
+                <div class="btn-group w-100 mb-2">
+                  <button class="btn btn-outline-success" id="btnSaveRoute">
+                    <i class="bi bi-bookmark me-1"></i>Salvar rota
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tools -->
+            <div class="card shadow-sm mb-3">
+              <div class="card-header">
+                <i class="bi bi-tools me-2"></i>Ferramentas
+              </div>
+              <div class="card-body">
+                <div class="btn-group w-100 mb-2 flex-wrap">
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    id="btnCenter"
+                  >
+                    <i class="bi bi-crosshair"></i> Centralizar
+                  </button>
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    id="btnCoord"
+                    title="Ativar coordenadas do mouse"
+                  >
+                    <i class="bi bi-cursor"></i> Coord.
+                  </button>
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    id="btnFullscreen"
+                  >
+                    <i class="bi bi-arrows-fullscreen"></i> Tela
+                  </button>
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    id="btnClearMap"
+                  >
+                    <i class="bi bi-trash"></i> Limpar
+                  </button>
+                </div>
+                <div class="form-check form-switch mb-1">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="chkScale"
+                    checked
+                  />
+                  <label class="form-check-label small" for="chkScale"
+                    >Mostrar escala</label
+                  >
+                </div>
+                <div class="form-check form-switch mb-1">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="chkGrid"
+                  />
+                  <label class="form-check-label small" for="chkGrid"
+                    >Grade de coordenadas</label
+                  >
+                </div>
+                <div class="form-check form-switch mb-1">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="chkWpt"
+                    checked
+                  />
+                  <label class="form-check-label small" for="chkWpt"
+                    >Mostrar waypoints</label
+                  >
+                </div>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                  <label class="small">Cor:</label>
+                  <input
+                    type="color"
+                    class="form-control form-control-color"
+                    id="routeColor"
+                    value="#0d6efd"
+                    style="width: 42px"
+                  />
+                  <label class="small">Espessura:</label>
+                  <input
+                    type="range"
+                    class="form-range w-50"
+                    id="routeWidth"
+                    min="2"
+                    max="12"
+                    value="5"
+                  />
+                  <span class="small text-muted" id="widthVal">5</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- RIGHT: Map + results -->
+        <div class="col-lg-8 col-xl-9">
+          <div class="row g-3 h-100">
+            <div class="col-12 map-wrap">
+              <div id="map"></div>
+              <div class="coords-tag" id="mouseCoords"></div>
+              <div class="map-loading d-none" id="mapLoading">
+                <div class="spinner-border text-light" role="status"></div>
+                <span>Consultando OSRM...</span>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <ul
+                class="nav nav-pills nav-fill mb-2"
+                id="resultTabs"
+                role="tablist"
+              >
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link active"
+                    data-bs-toggle="pill"
+                    data-bs-target="#tabInfo"
+                  >
+                    Info
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    data-bs-toggle="pill"
+                    data-bs-target="#tabRoutes"
+                  >
+                    Rotas
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    data-bs-toggle="pill"
+                    data-bs-target="#tabSteps"
+                  >
+                    Instruções
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    data-bs-toggle="pill"
+                    data-bs-target="#tabTable"
+                  >
+                    Matriz
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    data-bs-toggle="pill"
+                    data-bs-target="#tabJson"
+                  >
+                    JSON
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    data-bs-toggle="pill"
+                    data-bs-target="#tabUrl"
+                  >
+                    Requisição
+                  </button>
+                </li>
+              </ul>
+
+              <div class="tab-content">
+                <!-- INFO -->
+                <div
+                  class="tab-pane fade show active card shadow-sm"
+                  id="tabInfo"
+                >
+                  <div class="card-body">
+                    <div id="infoCards" class="row g-2"></div>
+                    <div
+                      class="alert alert-light border text-center text-muted py-4"
+                      id="tripEmpty"
+                    >
+                      <i class="bi bi-arrow-left-circle me-1"></i>Adicione
+                      pontos e clique em <strong>Calcular</strong>.
+                    </div>
+                    <div id="bboxCard" class="d-none mb-2">
+                      <div
+                        class="d-flex align-items-center gap-2 pt-2 border-top"
+                      >
+                        <i class="bi bi-bounding-box"></i>
+                        <span class="small"
+                          ><strong>Bounding Box:</strong>
+                          <span id="bboxText"></span
+                        ></span>
+                      </div>
+                    </div>
+                    <div id="endpointResult"></div>
+                  </div>
+                </div>
+
+                <!-- ROUTES / ALTERNATIVES -->
+                <div class="tab-pane fade" id="tabRoutes">
+                  <div class="card-body">
+                    <div
+                      id="alternativesEmpty"
+                      class="alert alert-secondary mb-0"
+                    >
+                      <i class="bi bi-shuffle me-1"></i> Nenhuma rota
+                      alternativa encontrada.
+                    </div>
+                    <div id="routesList"></div>
+                  </div>
+                </div>
+
+                <!-- STEPS -->
+                <div class="tab-pane fade" id="tabSteps">
+                  <div class="card-body">
+                    <div class="table-responsive">
+                      <table
+                        class="table table-hover table-sm mb-0"
+                        id="stepsTable"
+                      >
+                        <thead>
+                          <tr>
+                            <th>#</th>
+                            <th>Instrução</th>
+                            <th>Way</th>
+                            <th>Distância</th>
+                            <th>Duração</th>
+                          </tr>
+                        </thead>
+                        <tbody id="stepsTbody"></tbody>
+                      </table>
+                    </div>
+                    <div
+                      class="alert alert-light border text-muted mt-2 mb-0"
+                      id="stepsEmpty"
+                    >
+                      <i class="bi bi-sign-turn-left me-1"></i>Sem instruções
+                      ainda.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- JSON -->
+                <div class="tab-pane fade" id="tabJson">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                      <span class="small text-muted" id="jsonMeta"></span>
+                      <div class="d-flex gap-2">
+                        <button
+                          class="btn btn-sm btn-outline-primary"
+                          id="btnCopyJson"
+                        >
+                          <i class="bi bi-copy"></i> Copiar
+                        </button>
+                        <button
+                          class="btn btn-sm btn-outline-success"
+                          id="btnDlJson"
+                        >
+                          <i class="bi bi-download"></i> Baixar
+                        </button>
+                      </div>
+                    </div>
+                    <pre
+                      id="jsonView"
+                      class="json-view"
+                    ><code>Sem resposta ainda.</code></pre>
+                  </div>
+                </div>
+
+                <!-- URL -->
+                <div class="tab-pane fade" id="tabUrl">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                      <span class="small text-muted" id="urlMeta"></span>
+                      <button
+                        class="btn btn-sm btn-outline-primary"
+                        id="btnCopyUrl"
+                      >
+                        <i class="bi bi-copy"></i> Copiar URL
+                      </button>
+                    </div>
+                    <div class="url-box" id="urlView">
+                      Nenhuma requisição ainda.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- MATRIX -->
+                <div class="tab-pane fade" id="tabTable">
+                  <div class="card-body">
+                    <div class="table-responsive">
+                      <table
+                        class="table table-bordered table-sm mb-0"
+                        id="matrixTable"
+                      ></table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Settings modal -->
     <div class="modal fade" id="settingsModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-gear me-2"></i>Configurações</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <label class="form-label small">Servidor OSRM</label>
-                    <input type="url" class="form-control mb-3" id="setOsrmUrl" placeholder="http://host:5000">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-gear me-2"></i>Configurações
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <label class="form-label small">Servidor OSRM</label>
+            <input
+              type="url"
+              class="form-control mb-3"
+              id="setOsrmUrl"
+              placeholder="http://host:5000"
+            />
 
-                    <label class="form-label small">Perfil</label>
-                    <select class="form-select mb-3" id="setProfile">
-                        <option value="driving">driving</option>
-                        <option value="cycling">cycling</option>
-                        <option value="walking">walking</option>
-                    </select>
+            <label class="form-label small">Perfil</label>
+            <select class="form-select mb-3" id="setProfile">
+              <option value="driving">driving</option>
+              <option value="cycling">cycling</option>
+              <option value="walking">walking</option>
+            </select>
 
-                    <div class="row g-2 mb-3">
-                        <div class="col">
-                            <label class="form-label small">Latitude inicial</label>
-                            <input type="number" step="any" class="form-control" id="setLat">
-                        </div>
-                        <div class="col">
-                            <label class="form-label small">Longitude inicial</label>
-                            <input type="number" step="any" class="form-control" id="setLng">
-                        </div>
-                        <div class="col">
-                            <label class="form-label small">Zoom inicial</label>
-                            <input type="number" class="form-control" id="setZoom">
-                        </div>
-                    </div>
-
-                    <label class="form-label small">Mapa inicial</label>
-                    <select class="form-select" id="setTileset">
-                        <option value="osm">Padrão (OpenStreetMap)</option>
-                        <option value="sat">Satélite (Esri)</option>
-                    </select>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button class="btn btn-primary" id="btnSaveSettings">Salvar</button>
-                </div>
+            <div class="row g-2 mb-3">
+              <div class="col">
+                <label class="form-label small">Latitude inicial</label>
+                <input
+                  type="number"
+                  step="any"
+                  class="form-control"
+                  id="setLat"
+                />
+              </div>
+              <div class="col">
+                <label class="form-label small">Longitude inicial</label>
+                <input
+                  type="number"
+                  step="any"
+                  class="form-control"
+                  id="setLng"
+                />
+              </div>
+              <div class="col">
+                <label class="form-label small">Zoom inicial</label>
+                <input type="number" class="form-control" id="setZoom" />
+              </div>
             </div>
+
+            <label class="form-label small">Mapa inicial</label>
+            <select class="form-select" id="setTileset">
+              <option value="osm">Padrão (OpenStreetMap)</option>
+              <option value="sat">Satélite (Esri)</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">
+              Cancelar
+            </button>
+            <button class="btn btn-primary" id="btnSaveSettings">Salvar</button>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- History modal -->
     <div class="modal fade" id="historyModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-clock-history me-2"></i>Histórico</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-sm align-middle mb-0">
-                            <thead>
-                                <tr><th>Data/Hora</th><th>Origem</th><th>Destino</th><th>Distância</th><th>Tempo</th><th></th></tr>
-                            </thead>
-                            <tbody id="historyTbody"></tbody>
-                        </table>
-                    </div>
-                    <button class="btn btn-outline-danger btn-sm mt-2" id="btnClearHistory"><i class="bi bi-trash me-1"></i>Limpar histórico</button>
-                </div>
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-clock-history me-2"></i>Histórico
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="table-responsive">
+              <table class="table table-hover table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Data/Hora</th>
+                    <th>Origem</th>
+                    <th>Destino</th>
+                    <th>Distância</th>
+                    <th>Tempo</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="historyTbody"></tbody>
+              </table>
             </div>
+            <button
+              class="btn btn-outline-danger btn-sm mt-2"
+              id="btnClearHistory"
+            >
+              <i class="bi bi-trash me-1"></i>Limpar histórico
+            </button>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- About modal -->
     <div class="modal fade" id="aboutModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i>Sobre</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p><strong>OSRM Route Explorer</strong> é uma ferramenta profissional para testes, validação e demonstração de servidores OSRM.</p>
-                    <ul class="small mb-0">
-                        <li>Endpoints: Route, Trip, Table, Match e Nearest.</li>
-                        <li>Sem backend — toda comunicação via navegador.</li>
-                        <li>Geocodificação com Nominatim, ViaCEP e Photon.</li>
-                        <li>Exportação GeoJSON, JSON e GPX.</li>
-                    </ul>
-                </div>
-            </div>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-info-circle me-2"></i>Sobre
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>
+              <strong>OSRM Route Explorer</strong> é uma ferramenta profissional
+              para testes, validação e demonstração de servidores OSRM.
+            </p>
+            <ul class="small mb-0">
+              <li>Endpoints: Route, Trip, Table, Match e Nearest.</li>
+              <li>Sem backend — toda comunicação via navegador.</li>
+              <li>Geocodificação com Nominatim, ViaCEP e Photon.</li>
+              <li>Exportação GeoJSON, JSON e GPX.</li>
+            </ul>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Toast container -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+    <div
+      class="toast-container position-fixed bottom-0 end-0 p-3"
+      id="toastContainer"
+    ></div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Leaflet com fallback de CDN: se a primeira falhar, a segunda fornece a biblioteca.
          A segunda só é usada se a primeira não estiver carregada em window.L. -->
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>if (!(window.L && window.L.map)) document.write('<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>');</script>
+    <script>
+      if (!(window.L && window.L.map))
+        document.write(
+          '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>',
+        );
+    </script>
     <script src="js/utils.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/geocoder.js"></script>
@@ -425,5 +761,5 @@
     <script src="js/map.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/app.js"></script>
-</body>
+  </body>
 </html>
